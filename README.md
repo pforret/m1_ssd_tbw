@@ -28,6 +28,39 @@ Measure SSD wear (TBW) on MacOS M1 (ARM64) machines
         
         A typical TBW figure for a 250 GB SSD lies between 60 and 150 terabytes written
 
+## 🔥 Usage
+
+```bash
+> sudo ./m1_ssd_tbw                                                                                                                                                                                                                                                                 14s
+Password:
+Program: m1_ssd_tbw 0.0.2 by peter@forret.com
+Updated: Feb 21 23:04:55 2021
+Description: Measure SSD wear (TBW) on MacOS M1 (ARM64) machines
+Usage: m1_ssd_tbw [-h] [-q] [-v] [-f] [-l <log_dir>] [-t <tmp_dir>] [-d <disk>] <action>
+Flags, options and parameters:
+  -h|--help        : [flag] show usage [default: off]
+  -q|--quiet       : [flag] no output [default: off]
+  -v|--verbose     : [flag] output more [default: off]
+  -f|--force       : [flag] do not ask for confirmation (always yes) [default: off]
+  -l|--log_dir <?> : [option] folder for log files   [default: /Users/pforret/log/m1_ssd_tbw]
+  -t|--tmp_dir <?> : [option] folder for temp files  [default: .tmp]
+  -d|--disk <?>    : [option] disk ID  [default: /dev/disk0]
+  <action>         : [parameter] action to perform: info/check
+```
+
+Running it:
+
+```bash
+> sudo ./m1_ssd_tbw info
+SSD disk size: 494 GB
+SSD disk used: 148 GB
+SSD bytes written: 49 TB
+SSD current index: 100 x
+SSD max index: 5800 x
+SSD wear = 1 %
+```
+
+
 ## 🚀 Installation
 
 with [basher](https://github.com/basherpm/basher)
@@ -38,10 +71,6 @@ or with `git`
 
 	$ git clone https://github.com/pforret/m1_ssd_tbw.git
 	$ cd m1_ssd_tbw
-
-## 🔥 Usage
-
-	> m1_ssd_tbw.sh [action]
 
 ## 📝 Acknowledgements
 
