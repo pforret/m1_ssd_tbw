@@ -128,8 +128,7 @@ do_info() {
 }
 
 do_post() {
-  log_to_file "post [$input] -> [$output]"
-  # < "$1"  do_post_stuff > "$2"
+  out "TODO"
 }
 
 
