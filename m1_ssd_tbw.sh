@@ -12,28 +12,9 @@
 script_version="0.0.1" # if there is a VERSION.md in this script's folder, it will take priority for version number
 readonly script_author="peter@forret.com"
 readonly script_created="2021-02-21"
-readonly run_as_root=-1 # run_as_root: 0 = don't check anything / 1 = script MUST run as root / -1 = script MAY NOT run as root
+readonly run_as_root=1 # run_as_root: 0 = don't check anything / 1 = script MUST run as root / -1 = script MAY NOT run as root
 
 list_options() {
-  ### Change the next lines to reflect which flags/options/parameters you need
-  ### flag:   switch a flag 'on' / no value specified
-  ###     flag|<short>|<long>|<description>
-  ###     e.g. "-v" or "--verbose" for verbose output / default is always 'off'
-  ###     will be available as $<long> in the script e.g. $verbose
-  ### option: set an option / 1 value specified
-  ###     option|<short>|<long>|<description>|<default>
-  ###     e.g. "-e <extension>" or "--extension <extension>" for a file extension
-  ###     will be available a $<long> in the script e.g. $extension
-  ### list: add an list/array item / 1 value specified
-  ###     list|<short>|<long>|<description>| (default is ignored)
-  ###     e.g. "-u <user1> -u <user2>" or "--user <user1> --user <user2>"
-  ###     will be available a $<long> array in the script e.g. ${user[@]}
-  ### param:  comes after the options
-  ###     param|<type>|<long>|<description>
-  ###     <type> = 1 for single parameters - e.g. param|1|output expects 1 parameter <output>
-  ###     <type> = ? for optional parameters - e.g. param|1|output expects 1 parameter <output>
-  ###     <type> = n for list parameter    - e.g. param|n|inputs expects <input1> <input2> ... <input99>
-  ###     will be available as $<long> in the script after option/param parsing
   echo -n "
 #commented lines will be filtered
 flag|h|help|show usage
@@ -42,28 +23,17 @@ flag|v|verbose|output more
 flag|f|force|do not ask for confirmation (always yes)
 option|l|log_dir|folder for log files |$HOME/log/$script_prefix
 option|t|tmp_dir|folder for temp files|.tmp
-#option|w|width|width to use|800
-#list|u|user|user(s) to execute this for
-param|1|action|action to perform: analyze/convert
-param|?|input|input file
-param|?|output|output file
+option|d|disk|disk ID|/dev/disk0
+param|1|action|action to perform: info/check
 " | grep -v '^#' | grep -v '^\s*$'
 }
 
 list_dependencies() {
-  ### Change the next lines to reflect which binaries(programs) or scripts are necessary to run this script
-  # Example 1: a regular package that should be installed with apt/brew/yum/...
-  #curl
-  # Example 2: a program that should be installed with apt/brew/yum/... through a package with a different name
-  #convert|imagemagick
-  # Example 3: a package with its own package manager: basher (shell), go get (golang), cargo (Rust)...
-  #progressbar|basher install pforret/progressbar
   echo -n "
 gawk
 curl
-#ffmpeg
-#convert|imagemagick
-#progressbar|basher install pforret/progressbar
+jq
+smartctl|smartmontools
 " | grep -v "^#" | grep -v '^\s*$'
 }
 
@@ -77,18 +47,16 @@ main() {
 
   action=$(lower_case "$action")
   case $action in
-  action1)
-    #TIP: use «$script_prefix action1» to ...
-    #TIP:> $script_prefix action1 input.txt
-    # shellcheck disable=SC2154
-    do_action1 "$input"
+  info)
+    #TIP: use «$script_prefix info» to get all the SSD disk data
+    #TIP:> $script_prefix info
+    do_info
     ;;
 
-  action2)
-    #TIP: use «$script_prefix action2» to ...
-    #TIP:> $script_prefix action2 input.txt output.pdf
-    # shellcheck disable=SC2154
-    do_action2 "$input" "$output"
+  post)
+    #TIP: use «$script_prefix post» to post data to web service
+    #TIP:> $script_prefix post
+    do_post
     ;;
 
   check|env)
@@ -120,14 +88,39 @@ main() {
 ## Put your helper scripts here
 #####################################################################
 
-do_action1() {
-  log_to_file "action1 [$input]"
-  # < "$1"  do_action1_stuff
+do_info() {
+  # shellcheck disable=SC2154
+  json_file="$tmp_dir/$script_basename.$(echo "$disk" | hash 6).json"
+  debug "Save JSON info in $json_file"
+  smartctl -a -j "$disk" > "$json_file" 2> /dev/null
+#  Percentage Used:                    1%
+#  Data Units Read:                    107,713,247 [55.1 TB]
+#  Data Units Written:                 97,226,405 [49.7 TB]
+
+  [[ -z $(< "$json_file" jq .smartctl.platform_info ) ]] && die "No data found with smartctl"
+  units_total=$(df -b /System/Volumes/Data | awk '/dev/ {print $2}')
+  debug "Units total: $units_total"
+  bytes_total=$((units_total * 512))
+  out "SSD disk size: $((bytes_total / 1000000000)) GB"
+
+  units_used=$(df -b /System/Volumes/Data | awk '/dev/ {print $3}')
+  debug "Units used: $units_used"
+  bytes_used=$((units_used * 512))
+  out "SSD disk used: $((bytes_used / 1000000000)) GB"
+
+  units_written=$(< "$json_file" jq .nvme_smart_health_information_log.data_units_written)
+  bytes_written=$((units_written * 512000))
+  out "SSD bytes written: $((bytes_written / 1000000000000)) TB"
+
+  index=$((bytes_written / bytes_total))
+  out "SSD wear: $((index)) x"
+
+
 }
 
-do_action2() {
-  log_to_file "action2 [$input] -> [$output]"
-  # < "$1"  do_action2_stuff > "$2"
+do_post() {
+  log_to_file "post [$input] -> [$output]"
+  # < "$1"  do_post_stuff > "$2"
 }
 
 
@@ -638,7 +631,7 @@ recursive_readlink() {
 
 lookup_script_data() {
   readonly script_prefix=$(basename "${BASH_SOURCE[0]}" .sh)
-  readonly script_basename=$(basename "${BASH_SOURCE[0]}")
+  script_basename=$(basename "${BASH_SOURCE[0]}")
   readonly execution_day=$(date "+%Y-%m-%d")
   #readonly execution_year=$(date "+%Y")
 
@@ -760,11 +753,12 @@ import_env_if_any() {
   done
 }
 
-[[ $run_as_root == 1 ]] && [[ $UID -ne 0 ]] && die "user is $USER, MUST be root to run [$script_basename]"
-[[ $run_as_root == -1 ]] && [[ $UID -eq 0 ]] && die "user is $USER, CANNOT be root to run [$script_basename]"
-
 initialise_output  # output settings
 lookup_script_data # find installation folder
+
+[[ $run_as_root == 1  ]] && [[ $UID -ne 0 ]] && die "user is '$USER', MUST be 'root' to run [$script_basename]"
+[[ $run_as_root == -1 ]] && [[ $UID -eq 0 ]] && die "user is '$USER', CANNOT be 'root' to run [$script_basename]"
+
 init_options       # set default values for flags & options
 import_env_if_any  # overwrite with .env if any
 

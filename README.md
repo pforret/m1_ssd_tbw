@@ -10,6 +10,24 @@
 
 Measure SSD wear (TBW) on MacOS M1 (ARM64) machines
 
+## Background
+
+* [M1 Mac owners are experiencing extremely high SSD writes (Feb 17, 2021)](https://linustechtips.com/topic/1306757-m1-mac-owners-are-experiencing-extremely-high-ssd-writes-over-short-periods-of-time-likely-thanks-to-aggressive-swap/)
+
+        The most severe cases have "consumed" about 10-13% of the maximum warrantable TBW value of the SSDs
+  
+* [@marcan42 (Feb 16, 2021)](https://twitter.com/marcan42/status/1361722552238841860)
+
+        Update on M1 SSD wear issue: 
+        Available data suggests that write endurance ratings are not proportional to drive size.
+
+        256GB model: ~2000TB [1700-2300]
+        2TB model: ~5000TB [4300-6000]
+
+* [SSD Lifespan: How Long do SSDs Really Last? (July 30, 2020)](https://www.ontrack.com/en-us/blog/how-long-do-ssds-really-last)
+        
+        A typical TBW figure for a 250 GB SSD lies between 60 and 150 terabytes written
+
 ## 🚀 Installation
 
 with [basher](https://github.com/basherpm/basher)
