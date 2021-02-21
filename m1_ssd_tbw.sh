@@ -113,7 +113,16 @@ do_info() {
   out "SSD bytes written: $((bytes_written / 1000000000000)) TB"
 
   index=$((bytes_written / bytes_total))
-  out "SSD wear: $((index)) x"
+  out "SSD current index: $((index)) x"
+
+  max_index=7800
+  [[ $bytes_total -gt 300000000000 ]] && max_index=5800
+  [[ $bytes_total -gt 800000000000 ]] && max_index=3900
+  [[ $bytes_total -gt 1500000000000 ]] && max_index=2500
+  out "SSD max index: $max_index x"
+  out "SSD wear = $((index * 100 / max_index)) %"
+
+
 
 
 }
