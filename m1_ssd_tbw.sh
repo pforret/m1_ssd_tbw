@@ -120,7 +120,7 @@ do_info() {
   [[ $bytes_total -gt 800000000000 ]] && max_index=3900
   [[ $bytes_total -gt 1500000000000 ]] && max_index=2500
   out "SSD max index: $max_index x"
-  out "SSD wear = $((index * 100 / max_index)) %"
+  out "SSD wear = $(echo "$index" "$max_index" | awk '{printf ("%.2f", $1 * 100 / $2); }') %"
 
 
 
