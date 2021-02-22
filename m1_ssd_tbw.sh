@@ -91,8 +91,10 @@ main() {
 do_info() {
   # shellcheck disable=SC2154
   debug "Using disk $disk"
+  # shellcheck disable=SC2154
   json_file="$tmp_dir/$script_basename.$(echo "$disk" | hash 6).json"
   debug "Save JSON info in $json_file"
+  # shellcheck disable=SC2024
   sudo smartctl -a -j "$disk" > "$json_file" 2> /dev/null
 #  Percentage Used:                    1%
 #  Data Units Read:                    107,713,247 [55.1 TB]
