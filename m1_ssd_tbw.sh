@@ -12,7 +12,7 @@
 script_version="0.0.1" # if there is a VERSION.md in this script's folder, it will take priority for version number
 readonly script_author="peter@forret.com"
 readonly script_created="2021-02-21"
-readonly run_as_root=1 # run_as_root: 0 = don't check anything / 1 = script MUST run as root / -1 = script MAY NOT run as root
+readonly run_as_root=0 # run_as_root: 0 = don't check anything / 1 = script MUST run as root / -1 = script MAY NOT run as root
 
 list_options() {
   echo -n "
@@ -90,9 +90,10 @@ main() {
 
 do_info() {
   # shellcheck disable=SC2154
+  debug "Using disk $disk"
   json_file="$tmp_dir/$script_basename.$(echo "$disk" | hash 6).json"
   debug "Save JSON info in $json_file"
-  smartctl -a -j "$disk" > "$json_file" 2> /dev/null
+  sudo smartctl -a -j "$disk" > "$json_file" 2> /dev/null
 #  Percentage Used:                    1%
 #  Data Units Read:                    107,713,247 [55.1 TB]
 #  Data Units Written:                 97,226,405 [49.7 TB]
