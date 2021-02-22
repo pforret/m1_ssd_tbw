@@ -8,6 +8,9 @@
 
 # m1_ssd_tbw
 
+![](assets/m1ssd.jpg) 
+
+
 Measure SSD wear (TBW) on MacOS M1 (ARM64) machines
 
 ## Background
